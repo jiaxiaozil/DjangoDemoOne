@@ -16,16 +16,20 @@ class IndexView(generic.ListView):
     def get_queryset(self):
         #排序pub_date,切片取最后的5个
         #return Question.objects.order_by('-pub_date')[:5]
-        """不包括未来时间的数据,这个filter...lte筛选小于等于timezone.now的数据"""
-        return Question.objects.filter(pub_date__lte=timezone.now())[:5]
+        """不包括未来时间的数据,这个filter...lte筛选小于等于timezone.now的数据,筛掉外键choice为空的，并去重"""
+        return list(Question.objects.filter(pub_date__lte=timezone.now(),choice__isnull=False).order_by('-pub_date').distinct()[:5])
 
 class DetailView(generic.DetailView):
     model = Question
     template_name = 'polls/detail.html'
+    def get_queryset(self):
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
 class ResultsView(generic.DetailView):
     model = Question
     template_name = 'polls/results.html'
+    def get_queryset(self):
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
 def index(request):
     latest_question_list = Question.objects.order_by('-pub_date')[:5]
